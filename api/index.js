@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
        return res.status(200).json({ response: { text: 'Ошибка: ключ API не задан в настройках Vercel.', end_session: false }, version: '1.0' });
     }
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
         'X-Title': 'Alice Bot'
       },
       body: JSON.stringify({
-        model: 'qwen/qwen-2.5-72b-instruct:free',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
         messages: [
           { role: 'system', content: 'Ты голосовой помощник Алиса. Отвечай кратко, емко, без спецсимволов, звездочек и списков.' },
           { role: 'user', content: userQuery }

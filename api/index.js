@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
         'X-Title': 'Alice Bot'
       },
       body: JSON.stringify({
-        model: 'google/gemma-4-26b-a4b-it:free',
+        model: 'mistralai/mistral-7b-instruct:free',
         messages: [
           { role: 'system', content: 'Ты голосовой помощник Алиса. Отвечай кратко, емко, без спецсимволов, звездочек и списков.' },
           { role: 'user', content: userQuery }

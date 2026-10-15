@@ -3,38 +3,41 @@ module.exports = async (req, res) => {
   const userQuery = request?.original_utterance || request?.command || '';
 
   if (!userQuery.trim()) {
-    return res.status(200).json({ response: { text: 'Привет! На связи Gemini.', end_session: false }, version: version || '1.0' });
+    return res.status(200).json({ response: { text: 'Привет! На связи Gemini Pro.', end_session: false }, version: version || '1.0' });
   }
 
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-       return res.status(200).json({ response: { text: 'Отладка: Ключ GEMINI_API_KEY не найден в настройках Vercel.', end_session: false }, version: '1.0' });
+       return res.status(200).json({ response: { text: 'Ошибка: Ключ не найден.', end_session: false }, version: '1.0' });
     }
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    // Изменили ссылку: теперь используется флагманская стабильная модель gemini-1.5-pro-latest
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: userQuery }] }]
+        systemInstruction: { parts: [{ text: 'Ты ассистент на Станции Алиса. Отвечай кратко, емко и понятным живым языком. Запрещено использовать списки, таблицы, форматирование и спецсимволы, так как ответ зачитывается голосом.' }] },
+        contents: [{ parts: [{ text: userQuery }] }],
+        generationConfig: { maxOutputTokens: 400 }
       })
     });
 
     const data = await response.json();
 
-    // Если Google отклонил запрос, выводим причину прямо в чат Алисы
     if (!response.ok || !data.candidates) {
       return res.status(200).json({
-        response: { text: `Ошибка Google: ${data.error?.message || JSON.stringify(data)}`, end_session: false },
+        response: { text: `Ошибка Google: ${data.error?.message || 'Сбой'}`, end_session: false },
         version: version || '1.0'
       });
     }
 
+    const replyText = data.candidates[0].content.parts[0].text.replace(/[*#`_]/g, '');
     return res.status(200).json({
-      response: { text: data.candidates[0].content.parts[0].text.replace(/[*#`_]/g, ''), end_session: false },
+      response: { text: replyText, end_session: false },
       version: version || '1.0'
     });
   } catch (e) {
-    return res.status(200).json({ response: { text: `Системная ошибка сервера: ${e.message}`, end_session: false }, version: '1.0' });
+    return res.status(200).json({ response: { text: `Ошибка сервера: ${e.message}`, end_session: false }, version: '1.0' });
   }
 };

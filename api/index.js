@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192', // Ультрабыстрая модель (отклик < 0.4 сек)
+        model: 'openai/gpt-oss-120b', // Ультрабыстрая модель (отклик < 0.4 сек)
         messages: [
           { role: 'system', content: 'Ты голосовой помощник Алиса. Отвечай кратко, живым языком, без спецсимволов, звездочек и списков.' },
           { role: 'user', content: userQuery }

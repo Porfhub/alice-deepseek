@@ -3,40 +3,52 @@ module.exports = async (req, res) => {
   const userQuery = request?.original_utterance || request?.command || '';
 
   if (!userQuery.trim()) {
-    return res.status(200).json({ response: { text: 'Алиса на базе Qwen готова к работе.', end_session: false }, version: version || '1.0' });
+    return res.status(200).json({
+      response: { text: 'Алиса на сверхбыстром движке Groq готова к работе!', end_session: false },
+      version: version || '1.0'
+    });
   }
 
   try {
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-       return res.status(200).json({ response: { text: 'Ошибка: ключ OPENROUTER не найден.', end_session: false }, version: '1.0' });
+      return res.status(200).json({ response: { text: 'Ошибка: GROQ_API_KEY не задан в Vercel.', end_session: false }, version: '1.0' });
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://alice-skill.com',
-        'X-Title': 'Alice Bot'
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'cohere/north-mini-code:free',
+        model: 'llama-3.1-8b-instant', // Ультрабыстрая модель (отклик < 0.4 сек)
         messages: [
-          { role: 'system', content: 'Ты голосовой помощник Алиса. Отвечай кратко, емко, без спецсимволов, звездочек и списков.' },
+          { role: 'system', content: 'Ты голосовой помощник Алиса. Отвечай кратко, живым языком, без спецсимволов, звездочек и списков.' },
           { role: 'user', content: userQuery }
-        ]
+        ],
+        max_tokens: 300
       })
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
-      return res.status(200).json({ response: { text: `Ошибка OpenRouter: ${data.error?.message || 'Сбой'}`, end_session: false }, version: '1.0' });
+    // Безопасная проверка: если сервер вернул ошибку, скрипт не упадет
+    if (!response.ok || !data.choices || !data.choices[0]) {
+      const errMsg = data?.error?.message || 'Неизвестная ошибка API';
+      return res.status(200).json({
+        response: { text: `Ошибка Groq: ${errMsg}`, end_session: false },
+        version: '1.0'
+      });
     }
 
-    const replyText = data.choices[0].message.content.replace(/[*#`_]/g, '');
-    return res.status(200).json({ response: { text: replyText, end_session: false }, version: '1.0' });
+    const replyText = data.choices[0].message?.content || 'Пустой ответ.';
+    const cleanReply = replyText.replace(/[*#`_]/g, '');
+
+    return res.status(200).json({
+      response: { text: cleanReply, end_session: false },
+      version: '1.0'
+    });
 
   } catch (e) {
     return res.status(200).json({ response: { text: `Сбой сервера: ${e.message}`, end_session: false }, version: '1.0' });

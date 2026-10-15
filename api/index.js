@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
         'X-Title': 'Alice Bot'
       },
       body: JSON.stringify({
-        model: 'nvidia/nemotron-3-nano-omni:free',
+        model: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
         messages: [
           { role: 'system', content: 'Ты голосовой помощник Алиса. Отвечай кратко, емко, без спецсимволов, звездочек и списков.' },
           { role: 'user', content: userQuery }
